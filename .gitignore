@@ -137,3 +137,31 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Mobile / Expo
+.expo/
+.expo-shared/
+
+# Python API
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Build outputs
+build/
+dist/
+
+# macOS
+.DS_Store
+
+# Secrets / certificates
+*.pem
+*.key
+*.crt
