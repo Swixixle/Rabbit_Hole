@@ -1,0 +1,9 @@
+{
+  "name": "@rabbit-hole/mobile",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "echo 'Mobile app not yet implemented'",
+    "test": "echo 'No mobile tests yet' && exit 0"
+  }
+}
