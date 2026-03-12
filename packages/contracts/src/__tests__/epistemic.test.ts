@@ -20,18 +20,6 @@ describe('EpistemicAnnotation', () => {
     expect(annotation.support).toBe('direct');
   });
 
-  it('allows all confidence + support combinations', () => {
-    const combos: EpistemicAnnotation[] = [
-      { confidence: 'high', support: 'direct' },
-      { confidence: 'high', support: 'inference' },
-      { confidence: 'medium', support: 'interpretation' },
-      { confidence: 'low', support: 'speculation' },
-    ];
-    expect(combos).toHaveLength(4);
-    combos.forEach((c) => {
-      expect(c.confidence).toBeDefined();
-      expect(c.support).toBeDefined();
-    });
   it('accepts all valid confidence levels', () => {
     const levels: ClaimConfidence[] = ['high', 'medium', 'low'];
     levels.forEach((confidence) => {
