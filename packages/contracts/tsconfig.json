@@ -8,9 +8,6 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "rootDir": "src",
-    "declaration": true
-    "outDir": "dist",
-    "rootDir": "src",
     "declaration": true,
     "declarationMap": true
   },

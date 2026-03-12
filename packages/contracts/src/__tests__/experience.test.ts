@@ -2,8 +2,6 @@ import type { ArticleExperience, ExperienceStep } from '../experience';
 
 describe('ExperienceStep', () => {
   it('defines all five pipeline stages in order', () => {
-describe('ArticleExperience', () => {
-  it('accepts all valid experience steps', () => {
     const steps: ExperienceStep[] = [
       'identification',
       'summary',
@@ -45,18 +43,6 @@ describe('ArticleExperience', () => {
     };
     expect(experience.currentStep).toBe('questions');
     expect(experience.following).toBe(true);
-    steps.forEach((step) => {
-      const experience: ArticleExperience = {
-        id: '1',
-        articleId: 'a1',
-        userId: 'u1',
-        currentStep: step,
-        following: false,
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z',
-      };
-      expect(experience.currentStep).toBe(step);
-    });
   });
 
   it('constructs a valid ArticleExperience object', () => {
