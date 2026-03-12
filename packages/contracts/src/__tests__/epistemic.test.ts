@@ -1,6 +1,25 @@
 import type { ClaimConfidence, ClaimSupport, EpistemicAnnotation } from '../epistemic';
 
 describe('EpistemicAnnotation', () => {
+  it('accepts valid confidence values', () => {
+    const confidences: ClaimConfidence[] = ['high', 'medium', 'low'];
+    expect(confidences).toHaveLength(3);
+  });
+
+  it('accepts valid support values', () => {
+    const supports: ClaimSupport[] = ['direct', 'inference', 'interpretation', 'speculation'];
+    expect(supports).toHaveLength(4);
+  });
+
+  it('constructs a valid EpistemicAnnotation', () => {
+    const annotation: EpistemicAnnotation = {
+      confidence: 'high',
+      support: 'direct',
+    };
+    expect(annotation.confidence).toBe('high');
+    expect(annotation.support).toBe('direct');
+  });
+
   it('accepts all valid confidence levels', () => {
     const levels: ClaimConfidence[] = ['high', 'medium', 'low'];
     levels.forEach((confidence) => {
