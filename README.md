@@ -17,9 +17,10 @@ packages/
   contracts/    — Shared TypeScript types and interfaces
 
 docs/
-  epistemic-model.md      — Confidence + support model reference
-  experience-layer-v1.md  — ArticleExperience and ExperienceSteps design
-  share-surface-v1.md     — Native share surface implementation notes
+  system-architecture-v1.md — Canonical platform architecture (authoritative reference)
+  epistemic-model.md        — Confidence + support model reference
+  experience-layer-v1.md    — ArticleExperience and ExperienceSteps design
+  share-surface-v1.md       — Native share surface implementation notes
 ```
 
 ### Core Layers
@@ -39,6 +40,7 @@ Rabbit_Hole/
 ├── packages/
 │   └── contracts/        # Shared contracts (types, interfaces, schemas)
 ├── docs/
+│   ├── system-architecture-v1.md  # Canonical platform architecture (authoritative reference)
 │   ├── epistemic-model.md
 │   ├── experience-layer-v1.md
 │   └── share-surface-v1.md
