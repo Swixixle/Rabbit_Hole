@@ -7,12 +7,16 @@ import type {
   ReadingAssistPromptToneIntensity,
   ReadingAssistPromptToneSlot,
   ReadingAssistPromptToneSlotSummary,
+  ReadingAssistPromptCopySelectionKind,
+  ReadingAssistPromptCopySelection,
+  ReadingAssistPromptCopySelectionSummary,
 } from '../types/readingAssist';
 import {
   buildVerificationBundleSummary,
   buildVerificationBundleIndexSummary,
   buildCuriositySignalSummary,
   buildPromptToneSlotSummary,
+  buildPromptCopySelectionSummary,
 } from '../utils/readingAssist';
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -377,5 +381,239 @@ describe('ReadingAssistPromptToneSlot type shape', () => {
     const summary: ReadingAssistPromptToneSlotSummary = { slots: {} };
     expect(summary.slots).toBeDefined();
     expect(Object.keys(summary.slots)).toHaveLength(0);
+  });
+});
+
+// ── v24 helper ─────────────────────────────────────────────────────────────
+
+function makeToneSlotSummary(
+  opts: { disagreement?: boolean; sourceAvailable?: boolean } = {},
+): ReadingAssistPromptToneSlotSummary {
+  const slotKinds: ReadingAssistPromptToneSlotKind[] = ['gentle_nudge', 'curious_invite'];
+  if (opts.sourceAvailable !== false) slotKinds.push('source_peek');
+  if (opts.disagreement) slotKinds.push('soft_compare');
+
+  const bundleId = 'ra-verification-bundle|ra-cross-link|cl-1';
+  const signalId = `ra-curiosity-signal|${bundleId}`;
+  const slotId = `ra-prompt-tone-slot|${signalId}`;
+
+  return {
+    slots: {
+      [slotId]: {
+        id: slotId,
+        sentenceId: 'sent-1',
+        anchorId: 'anchor-1',
+        signalId,
+        bundleId,
+        crossLinkId: 'ra-cross-link|cl-1',
+        slotKinds,
+        toneFamily: opts.disagreement ? 'calm' : 'neutral_warm',
+        intensity: opts.disagreement ? 'medium' : 'low',
+        createdAt: '2024-01-01T00:00:00.000Z',
+      },
+    },
+  };
+}
+
+// ── v24 — Prompt Copy Selections ───────────────────────────────────────────
+
+describe('buildPromptCopySelectionSummary (v24)', () => {
+  it('creates one selection per tone slot', () => {
+    const summary = buildPromptCopySelectionSummary(makeToneSlotSummary());
+    expect(Object.keys(summary.selections)).toHaveLength(1);
+  });
+
+  it('assigns the expected selection id', () => {
+    const toneSlotSummary = makeToneSlotSummary();
+    const slotId = Object.keys(toneSlotSummary.slots)[0];
+    const summary = buildPromptCopySelectionSummary(toneSlotSummary);
+    expect(summary.selections[`ra-prompt-copy-selection|${slotId}`]).toBeDefined();
+  });
+
+  it('selects compare when soft_compare is present', () => {
+    const summary = buildPromptCopySelectionSummary(makeToneSlotSummary({ disagreement: true }));
+    const selection = Object.values(summary.selections)[0];
+    expect(selection.selectedKind).toBe<ReadingAssistPromptCopySelectionKind>('compare');
+  });
+
+  it('selects peek when source_peek is present and no soft_compare', () => {
+    const summary = buildPromptCopySelectionSummary(
+      makeToneSlotSummary({ disagreement: false, sourceAvailable: true }),
+    );
+    const selection = Object.values(summary.selections)[0];
+    expect(selection.selectedKind).toBe<ReadingAssistPromptCopySelectionKind>('peek');
+  });
+
+  it('selects invite when curious_invite is present and no higher-priority kinds', () => {
+    const slotId = 'ra-prompt-tone-slot|sig-only-invite';
+    const inviteOnlySlot: ReadingAssistPromptToneSlotSummary = {
+      slots: {
+        [slotId]: {
+          id: slotId,
+          sentenceId: 'sent-x',
+          anchorId: 'anchor-x',
+          signalId: 'sig-only-invite',
+          bundleId: 'bundle-x',
+          crossLinkId: 'cl-x',
+          slotKinds: ['gentle_nudge', 'curious_invite'],
+          toneFamily: 'neutral_warm',
+          intensity: 'low',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      },
+    };
+    const summary = buildPromptCopySelectionSummary(inviteOnlySlot);
+    const selection = Object.values(summary.selections)[0];
+    expect(selection.selectedKind).toBe<ReadingAssistPromptCopySelectionKind>('invite');
+  });
+
+  it('selects nudge when only gentle_nudge is present', () => {
+    const slotId = 'ra-prompt-tone-slot|sig-nudge-only';
+    const nudgeOnlySlot: ReadingAssistPromptToneSlotSummary = {
+      slots: {
+        [slotId]: {
+          id: slotId,
+          sentenceId: 'sent-y',
+          anchorId: 'anchor-y',
+          signalId: 'sig-nudge-only',
+          bundleId: 'bundle-y',
+          crossLinkId: 'cl-y',
+          slotKinds: ['gentle_nudge'],
+          toneFamily: 'neutral_warm',
+          intensity: 'low',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      },
+    };
+    const summary = buildPromptCopySelectionSummary(nudgeOnlySlot);
+    const selection = Object.values(summary.selections)[0];
+    expect(selection.selectedKind).toBe<ReadingAssistPromptCopySelectionKind>('nudge');
+  });
+
+  it('compare takes priority over peek when both are present', () => {
+    const slotId = 'ra-prompt-tone-slot|sig-both';
+    const bothSlot: ReadingAssistPromptToneSlotSummary = {
+      slots: {
+        [slotId]: {
+          id: slotId,
+          sentenceId: 'sent-z',
+          anchorId: 'anchor-z',
+          signalId: 'sig-both',
+          bundleId: 'bundle-z',
+          crossLinkId: 'cl-z',
+          slotKinds: ['gentle_nudge', 'curious_invite', 'source_peek', 'soft_compare'],
+          toneFamily: 'calm',
+          intensity: 'medium',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      },
+    };
+    const summary = buildPromptCopySelectionSummary(bothSlot);
+    const selection = Object.values(summary.selections)[0];
+    expect(selection.selectedKind).toBe<ReadingAssistPromptCopySelectionKind>('compare');
+  });
+
+  it('sets copyKey to null (placeholder)', () => {
+    const summary = buildPromptCopySelectionSummary(makeToneSlotSummary());
+    const selection = Object.values(summary.selections)[0];
+    expect(selection.copyKey).toBeNull();
+  });
+
+  it('preserves slot provenance fields', () => {
+    const toneSlotSummary = makeToneSlotSummary();
+    const slot = Object.values(toneSlotSummary.slots)[0];
+    const summary = buildPromptCopySelectionSummary(toneSlotSummary);
+    const selection = Object.values(summary.selections)[0];
+
+    expect(selection.slotId).toBe(slot.id);
+    expect(selection.signalId).toBe(slot.signalId);
+    expect(selection.bundleId).toBe(slot.bundleId);
+    expect(selection.crossLinkId).toBe(slot.crossLinkId);
+    expect(selection.sentenceId).toBe(slot.sentenceId);
+    expect(selection.anchorId).toBe(slot.anchorId);
+  });
+
+  it('returns an empty summary when there are no slots', () => {
+    const summary = buildPromptCopySelectionSummary({ slots: {} });
+    expect(Object.keys(summary.selections)).toHaveLength(0);
+  });
+
+  it('handles multiple slots independently', () => {
+    const slot1Id = 'ra-prompt-tone-slot|sig-1';
+    const slot2Id = 'ra-prompt-tone-slot|sig-2';
+
+    const multiSlot: ReadingAssistPromptToneSlotSummary = {
+      slots: {
+        [slot1Id]: {
+          id: slot1Id,
+          sentenceId: 'sent-1',
+          anchorId: 'anchor-1',
+          signalId: 'sig-1',
+          bundleId: 'bundle-1',
+          crossLinkId: 'cl-1',
+          slotKinds: ['gentle_nudge', 'curious_invite', 'source_peek'],
+          toneFamily: 'neutral_warm',
+          intensity: 'low',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+        [slot2Id]: {
+          id: slot2Id,
+          sentenceId: 'sent-2',
+          anchorId: 'anchor-2',
+          signalId: 'sig-2',
+          bundleId: 'bundle-2',
+          crossLinkId: 'cl-2',
+          slotKinds: ['gentle_nudge', 'curious_invite', 'source_peek', 'soft_compare'],
+          toneFamily: 'calm',
+          intensity: 'medium',
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      },
+    };
+
+    const summary = buildPromptCopySelectionSummary(multiSlot);
+    expect(Object.keys(summary.selections)).toHaveLength(2);
+
+    const sel1 = summary.selections[`ra-prompt-copy-selection|${slot1Id}`];
+    const sel2 = summary.selections[`ra-prompt-copy-selection|${slot2Id}`];
+
+    expect(sel1.selectedKind).toBe('peek');
+    expect(sel1.copyKey).toBeNull();
+
+    expect(sel2.selectedKind).toBe('compare');
+    expect(sel2.copyKey).toBeNull();
+  });
+});
+
+// ── v24 — Type shape ───────────────────────────────────────────────────────
+
+describe('ReadingAssistPromptCopySelection type shape', () => {
+  it('constructs a valid selection with all required fields', () => {
+    const selection: ReadingAssistPromptCopySelection = {
+      id: 'ra-prompt-copy-selection|ra-prompt-tone-slot|sig-1',
+      sentenceId: 'sent-1',
+      anchorId: 'anchor-1',
+      slotId: 'ra-prompt-tone-slot|sig-1',
+      signalId: 'sig-1',
+      bundleId: 'bundle-1',
+      crossLinkId: 'cl-1',
+      selectedKind: 'invite',
+      copyKey: null,
+      createdAt: '2024-01-01T00:00:00.000Z',
+    };
+    expect(selection.id).toContain('ra-prompt-copy-selection');
+    expect(selection.selectedKind).toBe('invite');
+    expect(selection.copyKey).toBeNull();
+  });
+
+  it('accepts all valid copy selection kind values', () => {
+    const kinds: ReadingAssistPromptCopySelectionKind[] = ['nudge', 'invite', 'peek', 'compare'];
+    expect(kinds).toHaveLength(4);
+  });
+
+  it('constructs a valid ReadingAssistPromptCopySelectionSummary', () => {
+    const summary: ReadingAssistPromptCopySelectionSummary = { selections: {} };
+    expect(summary.selections).toBeDefined();
+    expect(Object.keys(summary.selections)).toHaveLength(0);
   });
 });

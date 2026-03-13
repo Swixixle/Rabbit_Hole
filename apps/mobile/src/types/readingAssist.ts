@@ -95,3 +95,28 @@ export type ReadingAssistPromptToneSlot = {
 export type ReadingAssistPromptToneSlotSummary = {
   slots: Record<string, ReadingAssistPromptToneSlot>;
 };
+
+// v24 — Prompt Copy Selections
+
+export type ReadingAssistPromptCopySelectionKind =
+  | 'nudge'
+  | 'invite'
+  | 'peek'
+  | 'compare';
+
+export type ReadingAssistPromptCopySelection = {
+  id: string;
+  sentenceId: string;
+  anchorId: string;
+  slotId: string;
+  signalId: string;
+  bundleId: string;
+  crossLinkId: string;
+  selectedKind: ReadingAssistPromptCopySelectionKind;
+  copyKey: string | null;
+  createdAt: string;
+};
+
+export type ReadingAssistPromptCopySelectionSummary = {
+  selections: Record<string, ReadingAssistPromptCopySelection>;
+};
