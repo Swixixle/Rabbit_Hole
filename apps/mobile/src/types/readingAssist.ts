@@ -120,3 +120,25 @@ export type ReadingAssistPromptCopySelection = {
 export type ReadingAssistPromptCopySelectionSummary = {
   selections: Record<string, ReadingAssistPromptCopySelection>;
 };
+
+// v25 — Prompt Copy Library Records
+
+export type ReadingAssistPromptCopyLibraryRecord = {
+  id: string;
+  selectionId: string;
+  sentenceId: string;
+  anchorId: string;
+  slotId: string;
+  signalId: string;
+  bundleId: string;
+  crossLinkId: string;
+  selectedKind: ReadingAssistPromptCopySelectionKind;
+  libraryKey: string | null;
+  variantKeys: string[];
+  text: string | null;
+  createdAt: string;
+};
+
+export type ReadingAssistPromptCopyLibraryRecordSummary = {
+  records: Record<string, ReadingAssistPromptCopyLibraryRecord>;
+};

@@ -10,6 +10,8 @@ import type {
   ReadingAssistPromptCopySelectionKind,
   ReadingAssistPromptCopySelection,
   ReadingAssistPromptCopySelectionSummary,
+  ReadingAssistPromptCopyLibraryRecord,
+  ReadingAssistPromptCopyLibraryRecordSummary,
 } from '../types/readingAssist';
 import {
   buildVerificationBundleSummary,
@@ -17,6 +19,7 @@ import {
   buildCuriositySignalSummary,
   buildPromptToneSlotSummary,
   buildPromptCopySelectionSummary,
+  buildPromptCopyLibraryRecordSummary,
 } from '../utils/readingAssist';
 
 // ── helpers ────────────────────────────────────────────────────────────────
@@ -615,5 +618,181 @@ describe('ReadingAssistPromptCopySelection type shape', () => {
     const summary: ReadingAssistPromptCopySelectionSummary = { selections: {} };
     expect(summary.selections).toBeDefined();
     expect(Object.keys(summary.selections)).toHaveLength(0);
+  });
+});
+
+// ── v25 helper ─────────────────────────────────────────────────────────────
+
+function makeSelectionSummary(
+  opts: { selectedKind?: ReadingAssistPromptCopySelectionKind } = {},
+): ReadingAssistPromptCopySelectionSummary {
+  const bundleId = 'ra-verification-bundle|ra-cross-link|cl-1';
+  const signalId = `ra-curiosity-signal|${bundleId}`;
+  const slotId = `ra-prompt-tone-slot|${signalId}`;
+  const selectionId = `ra-prompt-copy-selection|${slotId}`;
+
+  return {
+    selections: {
+      [selectionId]: {
+        id: selectionId,
+        sentenceId: 'sent-1',
+        anchorId: 'anchor-1',
+        slotId,
+        signalId,
+        bundleId,
+        crossLinkId: 'ra-cross-link|cl-1',
+        selectedKind: opts.selectedKind ?? 'invite',
+        copyKey: null,
+        createdAt: '2024-01-01T00:00:00.000Z',
+      },
+    },
+  };
+}
+
+// ── v25 — Prompt Copy Library Records ─────────────────────────────────────
+
+describe('buildPromptCopyLibraryRecordSummary (v25)', () => {
+  it('creates one record per copy selection', () => {
+    const summary = buildPromptCopyLibraryRecordSummary(makeSelectionSummary());
+    expect(Object.keys(summary.records)).toHaveLength(1);
+  });
+
+  it('assigns the expected record id', () => {
+    const selectionSummary = makeSelectionSummary();
+    const selectionId = Object.keys(selectionSummary.selections)[0];
+    const summary = buildPromptCopyLibraryRecordSummary(selectionSummary);
+    expect(summary.records[`ra-prompt-copy-library-record|${selectionId}`]).toBeDefined();
+  });
+
+  it('sets libraryKey to null (placeholder)', () => {
+    const summary = buildPromptCopyLibraryRecordSummary(makeSelectionSummary());
+    const record = Object.values(summary.records)[0];
+    expect(record.libraryKey).toBeNull();
+  });
+
+  it('sets text to null (placeholder)', () => {
+    const summary = buildPromptCopyLibraryRecordSummary(makeSelectionSummary());
+    const record = Object.values(summary.records)[0];
+    expect(record.text).toBeNull();
+  });
+
+  it('initialises variantKeys as an empty array (placeholder)', () => {
+    const summary = buildPromptCopyLibraryRecordSummary(makeSelectionSummary());
+    const record = Object.values(summary.records)[0];
+    expect(record.variantKeys).toEqual([]);
+  });
+
+  it('preserves selectedKind from the source selection', () => {
+    for (const kind of ['nudge', 'invite', 'peek', 'compare'] as ReadingAssistPromptCopySelectionKind[]) {
+      const summary = buildPromptCopyLibraryRecordSummary(makeSelectionSummary({ selectedKind: kind }));
+      const record = Object.values(summary.records)[0];
+      expect(record.selectedKind).toBe(kind);
+    }
+  });
+
+  it('preserves selection provenance fields', () => {
+    const selectionSummary = makeSelectionSummary();
+    const selection = Object.values(selectionSummary.selections)[0];
+    const summary = buildPromptCopyLibraryRecordSummary(selectionSummary);
+    const record = Object.values(summary.records)[0];
+
+    expect(record.selectionId).toBe(selection.id);
+    expect(record.slotId).toBe(selection.slotId);
+    expect(record.signalId).toBe(selection.signalId);
+    expect(record.bundleId).toBe(selection.bundleId);
+    expect(record.crossLinkId).toBe(selection.crossLinkId);
+    expect(record.sentenceId).toBe(selection.sentenceId);
+    expect(record.anchorId).toBe(selection.anchorId);
+  });
+
+  it('returns an empty summary when there are no selections', () => {
+    const summary = buildPromptCopyLibraryRecordSummary({ selections: {} });
+    expect(Object.keys(summary.records)).toHaveLength(0);
+  });
+
+  it('handles multiple selections independently', () => {
+    const bundleId1 = 'ra-verification-bundle|ra-cross-link|cl-1';
+    const bundleId2 = 'ra-verification-bundle|ra-cross-link|cl-2';
+    const sig1 = `ra-curiosity-signal|${bundleId1}`;
+    const sig2 = `ra-curiosity-signal|${bundleId2}`;
+    const slot1 = `ra-prompt-tone-slot|${sig1}`;
+    const slot2 = `ra-prompt-tone-slot|${sig2}`;
+    const sel1 = `ra-prompt-copy-selection|${slot1}`;
+    const sel2 = `ra-prompt-copy-selection|${slot2}`;
+
+    const multiSelection: ReadingAssistPromptCopySelectionSummary = {
+      selections: {
+        [sel1]: {
+          id: sel1,
+          sentenceId: 'sent-1',
+          anchorId: 'anchor-1',
+          slotId: slot1,
+          signalId: sig1,
+          bundleId: bundleId1,
+          crossLinkId: 'ra-cross-link|cl-1',
+          selectedKind: 'peek',
+          copyKey: null,
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+        [sel2]: {
+          id: sel2,
+          sentenceId: 'sent-2',
+          anchorId: 'anchor-2',
+          slotId: slot2,
+          signalId: sig2,
+          bundleId: bundleId2,
+          crossLinkId: 'ra-cross-link|cl-2',
+          selectedKind: 'compare',
+          copyKey: null,
+          createdAt: '2024-01-01T00:00:00.000Z',
+        },
+      },
+    };
+
+    const summary = buildPromptCopyLibraryRecordSummary(multiSelection);
+    expect(Object.keys(summary.records)).toHaveLength(2);
+
+    const rec1 = summary.records[`ra-prompt-copy-library-record|${sel1}`];
+    const rec2 = summary.records[`ra-prompt-copy-library-record|${sel2}`];
+
+    expect(rec1.selectedKind).toBe('peek');
+    expect(rec1.libraryKey).toBeNull();
+    expect(rec1.text).toBeNull();
+
+    expect(rec2.selectedKind).toBe('compare');
+    expect(rec2.libraryKey).toBeNull();
+    expect(rec2.text).toBeNull();
+  });
+});
+
+// ── v25 — Type shape ───────────────────────────────────────────────────────
+
+describe('ReadingAssistPromptCopyLibraryRecord type shape', () => {
+  it('constructs a valid record with all required fields', () => {
+    const record: ReadingAssistPromptCopyLibraryRecord = {
+      id: 'ra-prompt-copy-library-record|ra-prompt-copy-selection|sel-1',
+      selectionId: 'ra-prompt-copy-selection|sel-1',
+      sentenceId: 'sent-1',
+      anchorId: 'anchor-1',
+      slotId: 'ra-prompt-tone-slot|sig-1',
+      signalId: 'sig-1',
+      bundleId: 'bundle-1',
+      crossLinkId: 'cl-1',
+      selectedKind: 'nudge',
+      libraryKey: null,
+      variantKeys: [],
+      text: null,
+      createdAt: '2024-01-01T00:00:00.000Z',
+    };
+    expect(record.id).toContain('ra-prompt-copy-library-record');
+    expect(record.libraryKey).toBeNull();
+    expect(record.text).toBeNull();
+    expect(record.variantKeys).toHaveLength(0);
+  });
+
+  it('constructs a valid ReadingAssistPromptCopyLibraryRecordSummary', () => {
+    const summary: ReadingAssistPromptCopyLibraryRecordSummary = { records: {} };
+    expect(summary.records).toBeDefined();
+    expect(Object.keys(summary.records)).toHaveLength(0);
   });
 });

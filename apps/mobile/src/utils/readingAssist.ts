@@ -13,6 +13,8 @@ import type {
   ReadingAssistPromptCopySelection,
   ReadingAssistPromptCopySelectionKind,
   ReadingAssistPromptCopySelectionSummary,
+  ReadingAssistPromptCopyLibraryRecord,
+  ReadingAssistPromptCopyLibraryRecordSummary,
 } from '../types/readingAssist';
 
 // v20 — Verification Bundle Skeleton
@@ -194,4 +196,35 @@ export function buildPromptCopySelectionSummary(
   }
 
   return { selections };
+}
+
+// v25 — Prompt Copy Library Records
+
+export function buildPromptCopyLibraryRecordSummary(
+  selectionSummary: ReadingAssistPromptCopySelectionSummary,
+): ReadingAssistPromptCopyLibraryRecordSummary {
+  const records: Record<string, ReadingAssistPromptCopyLibraryRecord> = {};
+  const now = new Date().toISOString();
+
+  for (const selection of Object.values(selectionSummary.selections)) {
+    const id = `ra-prompt-copy-library-record|${selection.id}`;
+
+    records[id] = {
+      id,
+      selectionId: selection.id,
+      sentenceId: selection.sentenceId,
+      anchorId: selection.anchorId,
+      slotId: selection.slotId,
+      signalId: selection.signalId,
+      bundleId: selection.bundleId,
+      crossLinkId: selection.crossLinkId,
+      selectedKind: selection.selectedKind,
+      libraryKey: null,
+      variantKeys: [],
+      text: null,
+      createdAt: now,
+    };
+  }
+
+  return { records };
 }
