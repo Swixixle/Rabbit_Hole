@@ -1,0 +1,9 @@
+{
+  "name": "@rabbit-hole/extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser extension lens groundwork — Open in Rabbit Hole",
+  "scripts": {
+    "test": "node test-handoff.js"
+  }
+}

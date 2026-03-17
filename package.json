@@ -1,0 +1,16 @@
+{
+  "name": "rabbit-hole",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/mobile",
+    "apps/extension"
+  ],
+  "scripts": {
+    "contracts:build": "npm run build -w @rabbit-hole/contracts",
+    "mobile:start": "npm run start -w @rabbit-hole/mobile"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "Rabbit Hole",
+    "slug": "rabbit-hole",
+    "version": "0.1.0",
+    "scheme": "rabbit-hole",
+    "plugins": ["expo-share-intent", "expo-av"],
+    "ios": {
+      "bundleIdentifier": "com.rabbithole.app"
+    }
+  }
+}

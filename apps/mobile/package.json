@@ -1,0 +1,54 @@
+{
+  "name": "@rabbit-hole/mobile",
+  "version": "0.1.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "test": "jest",
+    "prebuild": "expo prebuild --no-install --clean",
+    "run:ios": "expo run:ios",
+    "run:android": "expo run:android"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
+    "moduleNameMapper": {},
+    "transformIgnorePatterns": [
+      "node_modules/(?!@rabbit-hole/contracts)"
+    ]
+  },
+  "dependencies": {
+    "@rabbit-hole/contracts": "*",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/bottom-tabs": "^6.5.0",
+    "@react-navigation/native": "^6.1.0",
+    "@react-navigation/native-stack": "^6.9.0",
+    "babel-preset-expo": "^55.0.11",
+    "expo": "^54.0.0",
+    "expo-av": "~16.0.8",
+    "expo-constants": "~18.0.13",
+    "expo-image-picker": "~17.0.10",
+    "expo-linking": "~8.0.11",
+    "expo-location": "~19.0.8",
+    "expo-share-intent": "^3.0.0",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-view-shot": "4.0.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@types/jest": "^29.5.14",
+    "@types/react": "~19.1.10",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "~5.9.2"
+  },
+  "private": true
+}
