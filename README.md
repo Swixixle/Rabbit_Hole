@@ -1,8 +1,14 @@
-# Rabbit Hole (v0)
+# Rabbit Hole
 
-Mobile-first exploration engine: **capture image → tap region → article → verify → trace → questions.**
+> Mobile-first exploration engine — capture an image, tap a region, get a verified article, trace it through systems. Built with Expo React Native + FastAPI.
 
-This repo contains the first runnable slice. No web, no admin, no experience-layer animation yet.
+![Status: Early Development](https://img.shields.io/badge/status-early%20development-orange)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![Expo](https://img.shields.io/badge/Expo-000020?logo=expo&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+
+**Project status (v0):** First runnable slice. Core image → article → verify → trace flow works end-to-end with fixture-backed data. No web client, no admin panel, no experience-layer animation yet. Expect breaking changes as the API and mobile screens evolve.
 
 ## Quick start
 
